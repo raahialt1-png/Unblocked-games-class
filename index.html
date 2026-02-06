@@ -3,93 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Launcher</title>
+    <title>My Custom Arcade</title>
     <style>
+        :root {
+            --primary: #00ff88;
+            --bg: #121212;
+            --panel: #1e1e1e;
+        }
         body {
-            font-family: monospace;
-            background-color: #1a1a1a;
-            color: #0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: 'Segoe UI', monospace;
+            background-color: var(--bg);
+            color: white;
             margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        /* The Preview Box */
-        #preview-container {
-            width: 60%;
-            height: 400px;
-            border: 2px solid #0f0;
-            margin-bottom: 20px;
+        /* Sidebar Menu */
+        #sidebar {
+            width: 250px;
+            background: var(--panel);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-right: 2px solid #333;
+        }
+        
+        h2 { margin-top: 0; color: var(--primary); }
+        
+        .game-btn {
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 4px;
+        }
+        .game-btn:hover {
+            background: var(--primary);
+            color: black;
+            font-weight: bold;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            margin-top: auto;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: var(--primary);
+            color: black;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            display: block;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Main Game Area */
+        #main-view {
+            flex-grow: 1;
+            position: relative;
             background: #000;
         }
-
-        button {
-            background: #0f0;
-            color: #000;
+        
+        iframe {
+            width: 100%;
+            height: 100%;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        button:hover {
-            background: #fff;
         }
     </style>
 </head>
 <body>
 
-    <h3>Preview</h3>
-    <div id="preview-container">
-        <iframe id="game-frame" style="width:100%; height:100%; border:none;"></iframe>
+    <div id="sidebar">
+        <h2>ARCADE</h2>
+        
+        <button class="game-btn" onclick="loadGame('https://bing.com')">Bing (Test)</button>
+        <button class="game-btn" onclick="loadGame('about:blank')">Blank Canvas</button>
+        
+        <div class="upload-area">
+            <h3>Game Loader</h3>
+            <p style="font-size:0.8rem; color:#aaa;">Supports: .html, .txt</p>
+            <label class="upload-btn">
+                UPLOAD GAME FILE
+                <input type="file" id="fileInput" accept=".html,.htm,.txt">
+            </label>
+        </div>
     </div>
 
-    <button onclick="openInBlank()">Open in Full Screen (about:blank)</button>
+    <div id="main-view">
+        <iframe id="gameFrame" src="about:blank"></iframe>
+    </div>
 
     <script>
-        // --- YOUR GAME CODE GOES HERE ---
-        // Put your ENTIRE game HTML/CSS/JS inside these backticks ``
-        const gameCode = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>My Game</title>
-                <style>
-                    body { margin: 0; background: #222; overflow: hidden; display:flex; justify-content:center; align-items:center; height:100vh; color: white; font-family: sans-serif; }
-                    .game-box { width: 50px; height: 50px; background: red; position: relative; animation: spin 2s infinite linear; }
-                    @keyframes spin { 100% { transform: rotate(360deg); } }
-                </style>
-            </head>
-            <body>
-                <h1>Game Loaded!</h1>
-                <div class="game-box"></div>
-                <p>This is inside about:blank</p>
-            </body>
-            </html>
-        `;
+        const frame = document.getElementById('gameFrame');
+        const fileInput = document.getElementById('fileInput');
 
-        // Load the preview immediately
-        document.getElementById('game-frame').srcdoc = gameCode;
-
-        // Function to open the cloaked window
-        function openInBlank() {
-            // 1. Open a new window pointed at nothing
-            var win = window.open(); 
-            
-            // 2. Reset the document (clears any auto-loaded url stuff)
-            win.document.open();
-            
-            // 3. Write your game code into it
-            win.document.write(gameCode);
-            
-            // 4. Close the writing stream
-            win.document.close();
+        // 1. Function to load URLs directly
+        function loadGame(url) {
+            frame.src = url;
         }
+
+        // 2. Function to handle File Uploads
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Security Check: Only allow text/html types
+            // .exe and .zip cannot run in a browser iframe directly
+            if (file.name.endsWith('.exe') || file.name.endsWith('.zip')) {
+                alert("Error: Browsers cannot run .exe or .zip files directly.");
+                return;
+            }
+
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                // Inject the uploaded HTML code into the iframe
+                frame.srcdoc = event.target.result;
+            };
+
+            reader.readAsText(file);
+        });
     </script>
 </body>
 </html>
